@@ -2,8 +2,8 @@ package com.app.service;
 
 import com.app.dto.request.ChangePasswordRequest;
 import com.app.dto.request.ForgotPasswordRequest;
+import com.app.dto.request.GoogleLoginRequest;
 import com.app.dto.request.LoginRequest;
-import com.app.dto.request.OAuthLoginRequest;
 import com.app.dto.request.RefreshTokenRequest;
 import com.app.dto.request.RegisterRequest;
 import com.app.dto.request.ResetPasswordRequest;
@@ -23,7 +23,11 @@ public interface AuthService {
 
     AuthResponse login(LoginRequest request, String ipAddress, String userAgent);
 
-    AuthResponse oauthLogin(OAuthLoginRequest request, String ipAddress, String userAgent);
+    /**
+     * Signs in (or provisions) the user behind a Google ID token. The token is
+     * verified against Google's JWKS before any account is touched.
+     */
+    AuthResponse googleLogin(GoogleLoginRequest request, String ipAddress, String userAgent);
 
     AuthResponse refreshToken(RefreshTokenRequest request, String ipAddress, String userAgent);
 

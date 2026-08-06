@@ -59,7 +59,7 @@ class DashboardControllerTest {
             .build();
 
         testUser = userRepository.save(testUser);
-        bearerToken = "Bearer " + jwtService.generateAccessToken(testUser);
+        bearerToken = "Bearer " + jwtService.generateAccessToken(testUser, UUID.randomUUID());
     }
 
     @Test

@@ -31,9 +31,11 @@ public class SessionController {
     @Operation(summary = "List all active sessions and devices for the authenticated user")
     public ResponseEntity<List<SessionResponse>> getActiveSessions(Authentication authentication, HttpServletRequest request) {
         UUID userPublicId = UUID.fromString(authentication.getName());
-        String authHeader = request.getHeader("Authorization");
-        String currentToken = authHeader != null && authHeader.startsWith("Bearer ") ? authHeader.substring(7) : null;
-        return ResponseEntity.ok(authService.getActiveSessions(userPublicId, currentToken));
+        String authHeader = request.getHeader(ApiConstants.AUTHORIZATION_HEADER);
+        String accessToken = authHeader != null && authHeader.startsWith(ApiConstants.BEARER_PREFIX)
+            ? authHeader.substring(ApiConstants.BEARER_PREFIX.length()).trim()
+            : null;
+        return ResponseEntity.ok(authService.getActiveSessions(userPublicId, accessToken));
     }
 
     @DeleteMapping("/{public_id}")

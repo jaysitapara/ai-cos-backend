@@ -40,7 +40,8 @@ public class RefreshTokenEntity extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    @Column(name = "token_hash", nullable = false, unique = true, length = 255)
+    /** SHA-256 digest of the issued refresh token; the plaintext leaves the server once. */
+    @Column(name = "token_hash", nullable = false, unique = true, length = 64)
     private String tokenHash;
 
     @Column(name = "device_name", length = 100)
@@ -63,6 +64,13 @@ public class RefreshTokenEntity extends BaseEntity {
 
     @Column(name = "is_revoked", nullable = false)
     private boolean isRevoked;
+
+    @Column(name = "revoked_at")
+    private OffsetDateTime revokedAt;
+
+    /** Why the session ended — distinguishes a normal logout from a detected replay. */
+    @Column(name = "revoked_reason", length = 50)
+    private String revokedReason;
 
     @Column(name = "last_accessed_at", nullable = false)
     private OffsetDateTime lastAccessedAt;

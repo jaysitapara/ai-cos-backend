@@ -3,8 +3,8 @@ package com.app.controller;
 import com.app.common.ApiConstants;
 import com.app.dto.request.ChangePasswordRequest;
 import com.app.dto.request.ForgotPasswordRequest;
+import com.app.dto.request.GoogleLoginRequest;
 import com.app.dto.request.LoginRequest;
-import com.app.dto.request.OAuthLoginRequest;
 import com.app.dto.request.RefreshTokenRequest;
 import com.app.dto.request.RegisterRequest;
 import com.app.dto.request.ResetPasswordRequest;
@@ -65,12 +65,16 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request, ipAddress, userAgent));
     }
 
-    @PostMapping("/oauth")
-    @Operation(summary = "Authenticate or register via OAuth provider (Google, GitHub, Microsoft)")
-    public ResponseEntity<AuthResponse> oauthLogin(@Valid @RequestBody OAuthLoginRequest request, HttpServletRequest httpServletRequest) {
+    @PostMapping("/google")
+    @Operation(summary = "Authenticate or register with a Google ID token")
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Sign-in successful"),
+        @ApiResponse(responseCode = "401", description = "ID token invalid, expired, or issued to another client")
+    })
+    public ResponseEntity<AuthResponse> googleLogin(@Valid @RequestBody GoogleLoginRequest request, HttpServletRequest httpServletRequest) {
         String ipAddress = extractIpAddress(httpServletRequest);
         String userAgent = httpServletRequest.getHeader("User-Agent");
-        return ResponseEntity.ok(authService.oauthLogin(request, ipAddress, userAgent));
+        return ResponseEntity.ok(authService.googleLogin(request, ipAddress, userAgent));
     }
 
     @PostMapping("/verify-email")

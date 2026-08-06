@@ -66,14 +66,15 @@ public class DashboardDataSeeder implements CommandLineRunner {
 
         log.info("Seeding enterprise Dashboard demo data...");
 
-        // Seed Default Admin User if no users exist
+        // Seed Default Demo User if no users exist
         UserEntity defaultUser = userRepository.findAll().stream().findFirst().orElseGet(() -> {
             UserEntity user = UserEntity.builder()
                 .publicId(UUID.randomUUID())
-                .email("admin@aicos.io")
-                .fullName("Enterprise Architect")
-                .passwordHash(passwordEncoder.encode("AdminPass123!"))
-                .role(UserRole.ROLE_ADMIN)
+                .email("user@aicos.io")
+                .fullName("Demo User")
+                .passwordHash(passwordEncoder.encode("UserPass123!"))
+                .passwordLoginEnabled(true)
+                .role(UserRole.ROLE_USER)
                 .status(UserStatus.ACTIVE)
                 .emailVerified(true)
                 .failedLoginAttempts(0)

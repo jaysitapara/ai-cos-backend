@@ -34,21 +34,17 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
-    public String generateAccessToken(UserEntity user) {
+    public String generateAccessToken(UserEntity user, UUID sessionPublicId) {
         Instant issuedAt = Instant.now();
         return Jwts.builder()
             .subject(user.getPublicId().toString())
             .claim("email", user.getEmail())
             .claim("role", user.getRole().name())
+            .claim(CLAIM_SESSION_ID, sessionPublicId.toString())
             .issuedAt(Date.from(issuedAt))
             .expiration(Date.from(issuedAt.plusMillis(expirationMillis)))
             .signWith(signingKey)
             .compact();
-    }
-
-    @Override
-    public String generateRefreshToken() {
-        return UUID.randomUUID().toString() + "-" + UUID.randomUUID().toString();
     }
 
     @Override
@@ -70,6 +66,20 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public Claims extractAllClaims(String token) {
         return parseClaims(token);
+    }
+
+    @Override
+    public UUID extractSessionId(String token) {
+        if (token == null || token.isBlank()) {
+            return null;
+        }
+        try {
+            String sessionId = parseClaims(token).get(CLAIM_SESSION_ID, String.class);
+            return sessionId != null ? UUID.fromString(sessionId) : null;
+        } catch (JwtException | IllegalArgumentException ex) {
+            log.debug("Unable to read session id from token: {}", ex.getMessage());
+            return null;
+        }
     }
 
     @Override
