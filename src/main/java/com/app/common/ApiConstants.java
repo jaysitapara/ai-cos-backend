@@ -18,6 +18,7 @@ public final class ApiConstants {
     public static final String USERS_PATH = API_V1 + "/users";
     public static final String AUTH_PATH = API_V1 + "/auth";
     public static final String SESSIONS_PATH = API_V1 + "/sessions";
+    public static final String DASHBOARD_PATH = API_V1 + "/dashboard";
     public static final String HEALTH_PATH = API_V1 + "/health";
 
     /** Actor recorded in audit columns when no authenticated principal exists. */
