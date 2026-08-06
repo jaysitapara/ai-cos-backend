@@ -1,0 +1,25 @@
+# Gradle build artifacts
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Environment & Secrets
+.env
+.env.local
+
+# IDE & Editor files
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+
+# Logs & Temp files
+*.log
+*.tmp
+tmp/
+
+# OS generated files
+.DS_Store
+Thumbs.db
