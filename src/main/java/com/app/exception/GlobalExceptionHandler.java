@@ -89,6 +89,12 @@ public class GlobalExceptionHandler {
             .body(ErrorResponse.of(ErrorCode.ACCESS_DENIED, "Access to this resource is forbidden"));
     }
 
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ErrorResponse> handleTooManyRequests(TooManyRequestsException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+            .body(ErrorResponse.of(ErrorCode.TOO_MANY_REQUESTS, ex.getMessage()));
+    }
+
     @ExceptionHandler({UnauthorizedException.class, org.springframework.security.authentication.BadCredentialsException.class})
     public ResponseEntity<ErrorResponse> handleUnauthorized(Exception ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

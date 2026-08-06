@@ -23,3 +23,24 @@ jwt:
 app:
   cors:
     allowed-origins: http://localhost:3000
+
+  auth:
+    max-failed-login-attempts: 5
+    lock-duration-minutes: 15
+    refresh-token-validity-days: 30
+    verification-token-hours: 24
+    password-reset-token-hours: 2
+    login-history-retention-days: 90
+    # Generous so the shared-IP MockMvc suite is never throttled by a sibling test.
+    rate-limit-max-attempts: 1000
+    rate-limit-window-seconds: 60
+    # Far future: the retention sweep must not fire during a test run.
+    cleanup-cron: "0 0 0 1 1 ?"
+
+  oauth:
+    google:
+      # Left unset: no test calls Google, and an unconfigured client id is the
+      # documented "Google sign-in unavailable" state.
+      client-id: ''
+      jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
+      issuers: https://accounts.google.com,accounts.google.com

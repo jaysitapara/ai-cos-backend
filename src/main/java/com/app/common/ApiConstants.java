@@ -27,12 +27,24 @@ public final class ApiConstants {
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BEARER_PREFIX = "Bearer ";
 
-    /** Endpoints reachable without a JWT bearer token. */
+    public static final String AGENT_WORKSPACE_PATH = "/api/v1/agent-workspace";
+
+    /**
+     * Endpoints reachable without a JWT bearer token.
+     *
+     * <p>Strictly the credential-establishing routes plus documentation. Anything
+     * that reads or writes a user's own data must stay off this list — the agent
+     * workspace routes were previously public, which let any unauthenticated
+     * caller read and mutate other people's sessions and artifacts.
+     *
+     * <p>{@code /auth/logout} is public on purpose: revoking a refresh token has
+     * to work even once the access token has already expired.
+     */
     public static final List<String> PUBLIC_ENDPOINTS = List.of(
         HEALTH_PATH + "/**",
         AUTH_PATH + "/register",
         AUTH_PATH + "/login",
-        AUTH_PATH + "/oauth",
+        AUTH_PATH + "/google",
         AUTH_PATH + "/verify-email",
         AUTH_PATH + "/forgot-password",
         AUTH_PATH + "/reset-password",

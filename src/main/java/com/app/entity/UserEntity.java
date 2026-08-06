@@ -57,14 +57,16 @@ public class UserEntity extends BaseEntity {
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified;
 
-    @Column(name = "verification_token", length = 255)
-    private String verificationToken;
+    /** SHA-256 digest of the emailed verification token; the plaintext is never stored. */
+    @Column(name = "verification_token_hash", length = 64)
+    private String verificationTokenHash;
 
     @Column(name = "verification_expires_at")
     private OffsetDateTime verificationExpiresAt;
 
-    @Column(name = "password_reset_token", length = 255)
-    private String passwordResetToken;
+    /** SHA-256 digest of the emailed password reset token; the plaintext is never stored. */
+    @Column(name = "password_reset_token_hash", length = 64)
+    private String passwordResetTokenHash;
 
     @Column(name = "password_reset_expires_at")
     private OffsetDateTime passwordResetExpiresAt;
@@ -80,6 +82,14 @@ public class UserEntity extends BaseEntity {
 
     @Column(name = "current_organization_id")
     private UUID currentOrganizationId;
+
+    /**
+     * Set when the account was created through an identity provider and has no
+     * password of its own. Such accounts must not be able to sign in with the
+     * random placeholder hash they were seeded with.
+     */
+    @Column(name = "password_login_enabled", nullable = false)
+    private boolean passwordLoginEnabled;
 
     @PrePersist
     void applyDefaults() {
