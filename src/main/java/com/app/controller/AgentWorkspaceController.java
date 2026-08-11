@@ -173,11 +173,8 @@ public class AgentWorkspaceController {
             || content.contains("=== SYSTEM PROMPT ===")
             || content.contains("=== AGENT INSTRUCTION ===")
             || content.contains("Processed prompt:")
-            || content.contains("[LocalAI")
             || content.contains("[Gemini")
-            || content.contains("[Groq")
             || content.contains("[OpenAI")
-            || content.contains("[Anthropic")
             || content.contains("Goal Prompt:");
     }
 

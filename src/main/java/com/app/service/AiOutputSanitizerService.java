@@ -38,11 +38,8 @@ public class AiOutputSanitizerService {
     // ─── Provider metadata header patterns ────────────────────────────────────
     private static final List<Pattern> METADATA_PATTERNS = List.of(
         // Provider response wrappers
-        Pattern.compile("^\\[LocalAI[^\\]]*\\]\\s*:?\\s*", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE),
         Pattern.compile("^\\[Gemini[^\\]]*\\]\\s*:?\\s*", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE),
-        Pattern.compile("^\\[Groq[^\\]]*\\]\\s*:?\\s*", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE),
         Pattern.compile("^\\[OpenAI[^\\]]*\\]\\s*:?\\s*", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE),
-        Pattern.compile("^\\[Anthropic[^\\]]*\\]\\s*:?\\s*", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE),
 
         // Prompt context section dividers
         Pattern.compile("^={3,}\\s*WORKSPACE SESSION CONTEXT\\s*={3,}.*$", Pattern.MULTILINE | Pattern.CASE_INSENSITIVE),

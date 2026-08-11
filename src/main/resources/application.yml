@@ -17,7 +17,6 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
   flyway:
     enabled: true
     baseline-on-migrate: true
@@ -32,11 +31,15 @@ server:
     include-stacktrace: never
 
 # Centralized environment variable properties
+ai:
+  mode: ${AI_MODE:gemini}
+
 gemini:
   api-key: ${GEMINI_API_KEY:}
+  model: ${GEMINI_MODEL:gemini-1.5-flash}
 
-groq:
-  api-key: ${GROQ_API_KEY:}
+openai:
+  api-key: ${OPENAI_API_KEY:}
 
 tavily:
   api-key: ${TAVILY_API_KEY:}

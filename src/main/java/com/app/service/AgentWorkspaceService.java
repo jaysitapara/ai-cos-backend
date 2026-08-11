@@ -505,12 +505,12 @@ public class AgentWorkspaceService {
         }
 
         if (t.getOutputSummary() != null) {
-            if (t.getOutputSummary().contains("llama")) {
-                provider = "Groq";
-                model = "llama-3.3-70b-versatile";
-            } else if (t.getOutputSummary().contains("LocalAI")) {
-                provider = "LocalAI";
-                model = "llama3";
+            if (t.getOutputSummary().contains("OpenAI") || t.getOutputSummary().contains("gpt")) {
+                provider = "OpenAI";
+                model = "gpt-4o";
+            } else {
+                provider = "Gemini";
+                model = "gemini-1.5-flash";
             }
         }
 

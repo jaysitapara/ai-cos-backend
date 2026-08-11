@@ -15,11 +15,14 @@ public class AppConfigService {
 
     private static final Logger log = LoggerFactory.getLogger(AppConfigService.class);
 
-    @Value("${gemini.api-key:}")
+    @Value("${ai.mode:${AI_MODE:gemini}}")
+    private String aiMode;
+
+    @Value("${gemini.api-key:${GEMINI_API_KEY:}}")
     private String geminiApiKey;
 
-    @Value("${groq.api-key:}")
-    private String groqApiKey;
+    @Value("${openai.api-key:${OPENAI_API_KEY:}}")
+    private String openAiApiKey;
 
     @Value("${tavily.api-key:}")
     private String tavilyApiKey;
@@ -51,6 +54,13 @@ public class AppConfigService {
     @Value("${resend.api-key:}")
     private String resendApiKey;
 
+    public String getNormalizedAiMode() {
+        if (aiMode == null) {
+            return "gemini";
+        }
+        return aiMode.trim().toLowerCase();
+    }
+
     /**
      * Validates required environment variables during startup.
      * Throws IllegalStateException if critical required secrets are unconfigured.
@@ -60,6 +70,16 @@ public class AppConfigService {
 
         List<String> missingVars = new ArrayList<>();
 
+        String mode = getNormalizedAiMode();
+        if (!"gemini".equals(mode) && !"openai".equals(mode)) {
+            String errorMsg = String.format(
+                "CRITICAL CONFIGURATION ERROR: Invalid AI_MODE value '%s'. Supported values are ONLY 'gemini' and 'openai'.",
+                aiMode
+            );
+            log.error(errorMsg);
+            throw new IllegalStateException(errorMsg);
+        }
+
         if (jwtSecret == null || jwtSecret.trim().isEmpty()) {
             missingVars.add("JWT_SECRET");
         }
@@ -68,6 +88,15 @@ public class AppConfigService {
         }
         if (databaseUrl == null || databaseUrl.trim().isEmpty()) {
             missingVars.add("DATABASE_URL");
+        }
+
+        if (!activeTestProfile) {
+            if ("gemini".equals(mode) && (geminiApiKey == null || geminiApiKey.trim().isEmpty())) {
+                missingVars.add("GEMINI_API_KEY");
+            }
+            if ("openai".equals(mode) && (openAiApiKey == null || openAiApiKey.trim().isEmpty())) {
+                missingVars.add("OPENAI_API_KEY");
+            }
         }
 
         if (!missingVars.isEmpty() && !activeTestProfile) {
@@ -80,7 +109,7 @@ public class AppConfigService {
             throw new IllegalStateException(errorMsg);
         }
 
-        log.info("Centralized Configuration Layer: All required environment variables successfully loaded and validated.");
+        log.info("Centralized Configuration Layer: Active AI_MODE is '{}'. All required environment variables successfully loaded and validated.", mode);
     }
 
     /**

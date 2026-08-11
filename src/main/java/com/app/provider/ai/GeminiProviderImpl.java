@@ -15,10 +15,10 @@ import java.util.Map;
 @Component
 public class GeminiProviderImpl implements AiProvider {
 
-    @Value("${ai.providers.gemini.api-key:${GEMINI_API_KEY:}}")
+    @Value("${gemini.api-key:${GEMINI_API_KEY:}}")
     private String apiKey;
 
-    @Value("${ai.providers.gemini.model:gemini-1.5-flash}")
+    @Value("${gemini.model:${GEMINI_MODEL:gemini-1.5-flash}}")
     private String defaultModel;
 
     private final RestClient restClient;
@@ -124,11 +124,3 @@ public class GeminiProviderImpl implements AiProvider {
         private int candidatesTokenCount;
     }
 }
-
-
-
-
-    
-    
-    
-    

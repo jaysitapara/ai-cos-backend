@@ -23,3 +23,7 @@ tmp/
 # OS generated files
 .DS_Store
 Thumbs.db
+
+# Dynamic runtime workspaces
+workspace/
+

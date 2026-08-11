@@ -16,11 +16,14 @@ spring:
   flyway:
     enabled: false
 
+ai:
+  mode: gemini
+
 gemini:
   api-key: test-gemini-key
 
-groq:
-  api-key: test-groq-key
+openai:
+  api-key: test-openai-key
 
 tavily:
   api-key: test-tavily-key

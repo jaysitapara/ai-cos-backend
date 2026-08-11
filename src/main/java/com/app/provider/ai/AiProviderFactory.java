@@ -1,8 +1,8 @@
 package com.app.provider.ai;
 
+import com.app.config.AppConfigService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -16,13 +16,11 @@ import java.util.stream.Collectors;
 public class AiProviderFactory {
 
     private final Map<String, AiProvider> providers;
-    private final List<String> fallbackPriorityOrder = List.of("gemini", "groq", "openai", "anthropic", "localai");
-
-    @Value("${ai.provider.default:Gemini}")
-    private String defaultProviderName;
+    private final AppConfigService appConfigService;
 
     @Autowired
-    public AiProviderFactory(List<AiProvider> providerList) {
+    public AiProviderFactory(List<AiProvider> providerList, AppConfigService appConfigService) {
+        this.appConfigService = appConfigService;
         this.providers = providerList.stream()
             .collect(Collectors.toMap(
                 p -> p.getProviderName().toLowerCase(),
@@ -33,61 +31,47 @@ public class AiProviderFactory {
 
     public Optional<AiProvider> getProvider(String name) {
         if (name == null || name.trim().isEmpty()) {
-            return getDefaultProvider();
+            return getActiveProvider();
         }
-        return Optional.ofNullable(providers.get(name.toLowerCase()));
+        String normalized = name.trim().toLowerCase();
+        if (!"gemini".equals(normalized) && !"openai".equals(normalized)) {
+            throw new IllegalArgumentException("Unsupported AI provider requested: '" + name + "'. Supported providers: gemini, openai.");
+        }
+        return Optional.ofNullable(providers.get(normalized));
     }
 
-    public Optional<AiProvider> getDefaultProvider() {
-        AiProvider configured = providers.get(defaultProviderName.toLowerCase());
-        if (configured != null && configured.isAvailable()) {
-            return Optional.of(configured);
+    public Optional<AiProvider> getActiveProvider() {
+        String activeMode = appConfigService.getNormalizedAiMode();
+        if (!"gemini".equals(activeMode) && !"openai".equals(activeMode)) {
+            throw new IllegalStateException("Unsupported AI_MODE configured: '" + activeMode + "'. Supported modes: gemini, openai.");
         }
-        // Fallback priority: Gemini -> Groq -> OpenAI -> Anthropic -> LocalAI
-        for (String priorityName : fallbackPriorityOrder) {
-            AiProvider p = providers.get(priorityName);
-            if (p != null && p.isAvailable()) {
-                log.info("Default provider not available; falling back to priority provider: {}", p.getProviderName());
-                return Optional.of(p);
-            }
+
+        AiProvider provider = providers.get(activeMode);
+        if (provider == null) {
+            throw new IllegalStateException("No provider implementation registered for active AI_MODE: '" + activeMode + "'");
         }
-        return providers.values().stream().filter(AiProvider::isAvailable).findFirst();
+        return Optional.of(provider);
     }
 
     /**
-     * Executes completion request with automatic provider failover across fallback order.
+     * Executes completion using strictly the backend-configured active AI provider (AI_MODE).
+     * IMPORTANT: No automatic failover or fallback to another provider is permitted per architecture spec.
      */
-    public AiCompletionResponse generateCompletionWithFallback(AiCompletionRequest request) {
-        // Build candidate provider list starting with requested or default
-        List<AiProvider> availableCandidates = fallbackPriorityOrder.stream()
-            .map(providers::get)
-            .filter(p -> p != null && p.isAvailable())
-            .collect(Collectors.toList());
+    public AiCompletionResponse generateCompletion(AiCompletionRequest request) {
+        AiProvider provider = getActiveProvider()
+            .orElseThrow(() -> new IllegalStateException("Active AI provider is not available"));
 
-        if (availableCandidates.isEmpty()) {
-            // Fallback to any registered provider if no keys configured
-            availableCandidates = providers.values().stream().collect(Collectors.toList());
+        log.info("Executing LLM completion strictly using active AI_MODE provider: {}", provider.getProviderName());
+        try {
+            return provider.generateCompletion(request);
+        } catch (Exception e) {
+            log.error("Active AI provider [{}] failed execution: {}. Automatic fallback is DISABLED.", provider.getProviderName(), e.getMessage());
+            throw new RuntimeException("AI Provider [" + provider.getProviderName() + "] Execution Failed: " + e.getMessage(), e);
         }
-
-        Exception lastException = null;
-        for (AiProvider provider : availableCandidates) {
-            try {
-                log.info("Attempting LLM completion using provider: {}", provider.getProviderName());
-                return provider.generateCompletion(request);
-            } catch (Exception e) {
-                log.warn("Provider {} failed execution: {}. Trying failover provider...", provider.getProviderName(), e.getMessage());
-                lastException = e;
-            }
-        }
-
-        throw new RuntimeException("All AI Providers failed to generate completion. Last error: " +
-            (lastException != null ? lastException.getMessage() : "Unknown"), lastException);
     }
 
     public List<String> getAvailableProviderNames() {
-        return providers.values().stream()
-            .filter(AiProvider::isAvailable)
-            .map(AiProvider::getProviderName)
-            .collect(Collectors.toList());
+        return List.of("gemini", "openai");
     }
 }
+

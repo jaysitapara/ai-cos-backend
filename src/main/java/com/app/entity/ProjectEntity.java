@@ -1,20 +1,8 @@
 package com.app.entity;
 
 import com.app.common.BaseEntity;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
@@ -36,6 +24,10 @@ public class ProjectEntity extends BaseEntity {
     private UUID publicId;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private UserEntity user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "workspace_id")
     private WorkspaceEntity workspace;
 
@@ -53,4 +45,45 @@ public class ProjectEntity extends BaseEntity {
 
     @Column(name = "due_date")
     private OffsetDateTime dueDate;
+
+    @Column(name = "current_version_id")
+    private Long currentVersionId;
+
+    @Column(name = "runtime_status", length = 50)
+    private String runtimeStatus;
+
+    @Column(name = "runtime_port")
+    private Integer runtimePort;
+
+    @Column(name = "container_id", length = 128)
+    private String containerId;
+
+    @Column(name = "execution_mode", length = 32)
+    @Builder.Default
+    private String executionMode = "container";
+
+    @Column(name = "active_tech_stack_json", columnDefinition = "TEXT")
+    private String activeTechStackJson;
+
+    @Column(name = "preview_url", length = 255)
+    private String previewUrl;
+
+    @Column(name = "last_run_at")
+    private OffsetDateTime lastRunAt;
+
+    @PrePersist
+    protected void onCreateDefaults() {
+        if (publicId == null) {
+            publicId = UUID.randomUUID();
+        }
+        if (status == null) {
+            status = "QUEUED";
+        }
+        if (progress == null) {
+            progress = 0;
+        }
+        if (runtimeStatus == null) {
+            runtimeStatus = "STOPPED";
+        }
+    }
 }

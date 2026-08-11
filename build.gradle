@@ -34,8 +34,8 @@ dependencies {
     // Database & Migration
     implementation 'org.postgresql:postgresql'
     implementation 'com.h2database:h2'
-    implementation 'org.flywaydb:flyway-core'
-    implementation 'org.flywaydb:flyway-database-postgresql'
+    implementation 'org.flywaydb:flyway-core:10.19.0'
+    implementation 'org.flywaydb:flyway-database-postgresql:10.19.0'
 
     // OAuth2 / JOSE — verifies Google ID tokens against Google's JWKS endpoint
     implementation 'org.springframework.security:spring-security-oauth2-jose'

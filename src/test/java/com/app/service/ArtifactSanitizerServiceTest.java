@@ -87,9 +87,9 @@ class ArtifactSanitizerServiceTest {
     // ─── 2. Provider Metadata Stripping ───────────────────────────────────────
 
     @Test
-    @DisplayName("Should strip [LocalAI ...] header from Java source")
-    void testStripsLocalAiHeaderFromJava() {
-        String raw = "[LocalAI (http://localhost:11434) llama3 Response]: Processed prompt:\n" +
+    @DisplayName("Should strip [OpenAI ...] header from Java source")
+    void testStripsOpenAiHeaderFromJava() {
+        String raw = "[OpenAI gpt-4o Response]: Processed prompt:\n" +
                      "=== WORKSPACE SESSION CONTEXT ===\n" +
                      "Goal Prompt: Build a Todo App\n" +
                      "Project Type: Enterprise\n\n" +
@@ -97,7 +97,7 @@ class ArtifactSanitizerServiceTest {
 
         String result = sanitizer.sanitizeOutput(raw);
 
-        assertFalse(result.contains("[LocalAI"), "LocalAI header must be stripped");
+        assertFalse(result.contains("[OpenAI"), "OpenAI header must be stripped");
         assertFalse(result.contains("=== WORKSPACE SESSION CONTEXT ==="), "Context section must be stripped");
         assertFalse(result.contains("Processed prompt:"), "Processed prompt prefix must be stripped");
         assertFalse(result.contains("Goal Prompt:"), "Goal Prompt line must be stripped");
@@ -111,15 +111,6 @@ class ArtifactSanitizerServiceTest {
         String result = sanitizer.sanitizeOutput(raw);
         assertFalse(result.contains("[Gemini"), "Gemini header must be stripped");
         assertTrue(result.contains("import React"), "React import must remain");
-    }
-
-    @Test
-    @DisplayName("Should strip [Groq ...] header")
-    void testStripsGroqHeader() {
-        String raw = "[Groq llama-3.3-70b Response]:\nCREATE TABLE todos (id BIGSERIAL PRIMARY KEY);";
-        String result = sanitizer.sanitizeOutput(raw);
-        assertFalse(result.contains("[Groq"), "Groq header must be stripped");
-        assertTrue(result.contains("CREATE TABLE"), "SQL must remain");
     }
 
     @Test
@@ -255,11 +246,10 @@ class ArtifactSanitizerServiceTest {
     // ─── 5. End-to-End Before vs After ────────────────────────────────────────
 
     @Test
-    @DisplayName("E2E: Raw LocalAI dump → clean Java source code only")
-    void testEndToEndRawLocalAiDumpToCleanJava() {
-        // BEFORE: what the stub LocalAI provider was returning
+    @DisplayName("E2E: Raw Gemini dump → clean Java source code only")
+    void testEndToEndRawGeminiDumpToCleanJava() {
         String before =
-            "[LocalAI (http://localhost:11434) llama3 Response]: Processed prompt:\n" +
+            "[Gemini gemini-1.5-flash Response]: Processed prompt:\n" +
             "=== WORKSPACE SESSION CONTEXT ===\n" +
             "Goal Prompt: Build a Todo App using Spring Boot and React\n" +
             "Project Type: Enterprise Web Application System\n" +
@@ -286,11 +276,9 @@ class ArtifactSanitizerServiceTest {
             "}\n" +
             "```";
 
-        // AFTER: what should be stored in the database and exported in ZIP
         String after = sanitizer.sanitizeOutput(before);
 
-        // Assert: no raw metadata remains
-        assertFalse(after.contains("[LocalAI"), "LocalAI header must be gone");
+        assertFalse(after.contains("[Gemini"), "Gemini header must be gone");
         assertFalse(after.contains("=== WORKSPACE SESSION CONTEXT ==="), "Context section must be gone");
         assertFalse(after.contains("=== AGENT INSTRUCTION ==="), "Agent instruction must be gone");
         assertFalse(after.contains("Goal Prompt:"), "Goal Prompt must be gone");

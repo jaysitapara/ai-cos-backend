@@ -19,15 +19,9 @@ class AppConfigServiceTest {
         assertNotNull(appConfigService.getJwtSecret());
         assertNotNull(appConfigService.getJwtRefreshSecret());
         assertNotNull(appConfigService.getGeminiApiKey());
-        assertNotNull(appConfigService.getGroqApiKey());
-        assertNotNull(appConfigService.getTavilyApiKey());
-        assertNotNull(appConfigService.getUpstashRedisRestUrl());
-        assertNotNull(appConfigService.getUpstashRedisRestToken());
+        assertNotNull(appConfigService.getOpenAiApiKey());
         assertNotNull(appConfigService.getDatabaseUrl());
-        assertNotNull(appConfigService.getRedisUrl());
-        assertNotNull(appConfigService.getGithubToken());
-        assertNotNull(appConfigService.getVercelToken());
-        assertNotNull(appConfigService.getResendApiKey());
+        assertNotNull(appConfigService.getNormalizedAiMode());
 
         assertEquals("[NOT SET]", appConfigService.maskSecret(null));
         assertEquals("********", appConfigService.maskSecret("12345678"));

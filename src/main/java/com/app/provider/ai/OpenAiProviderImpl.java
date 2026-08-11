@@ -24,7 +24,7 @@ import java.util.Map;
 @Component
 public class OpenAiProviderImpl implements AiProvider {
 
-    @Value("${ai.providers.openai.api-key:}")
+    @Value("${ai.providers.openai.api-key:${OPENAI_API_KEY:}}")
     private String apiKey;
 
     @Value("${ai.providers.openai.model:gpt-4o}")

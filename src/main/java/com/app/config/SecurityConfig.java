@@ -18,6 +18,8 @@ import java.util.List;
 
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 @Configuration
 @EnableWebSecurity
@@ -32,6 +34,17 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();
+    }
+
+    /**
+     * Registered to suppress Spring Security's auto-generated password warning.
+     * This app uses stateless JWT authentication — UserDetailsService is never
+     * invoked at runtime. Throwing UsernameNotFoundException ensures any accidental
+     * call fails loudly instead of silently succeeding.
+     */
+    @Bean
+    public UserDetailsService userDetailsService() {
+        return username -> { throw new UsernameNotFoundException("JWT-only auth: UserDetailsService must not be called"); };
     }
 
     @Bean

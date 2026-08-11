@@ -6,7 +6,7 @@ import com.app.entity.AgentWorkspaceArtifactEntity;
 import com.app.entity.AgentWorkspaceSessionEntity;
 import com.app.provider.ai.AiCompletionRequest;
 import com.app.provider.ai.AiCompletionResponse;
-import com.app.provider.ai.AiProviderFactory;
+import com.app.service.AIService;
 import com.app.repository.AgentExecutionLogRepository;
 import com.app.repository.AgentExecutionTaskRepository;
 import com.app.repository.AgentWorkspaceArtifactRepository;
@@ -25,12 +25,6 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Phase 7.2 — Orchestration Engine with Production Retry Loop & Full 16-Agent Artifact Coverage
- *
- * Key changes:
- *  1. All 16 agent roles now produce a named artifact file saved to the database
- *  2. Validation uses a 3-attempt retry loop (not a single retry) before accepting content
- *  3. The sanitizer is applied on every attempt before validation
- *  4. Only sanitized + validated content is ever persisted — raw provider responses NEVER touch the DB
  */
 @Slf4j
 @Service
@@ -43,7 +37,7 @@ public class AgentOrchestrationEngine {
     private final AgentExecutionTaskRepository taskRepository;
     private final AgentExecutionLogRepository logRepository;
     private final AgentWorkspaceArtifactRepository artifactRepository;
-    private final AiProviderFactory aiProviderFactory;
+    private final AIService aiService;
     private final AiPromptContextEngine contextEngine;
     private final AiOutputSanitizerService sanitizerService;
     private final TokenCostCalculator costCalculator;
@@ -216,7 +210,7 @@ public class AgentOrchestrationEngine {
         if (meta == null) {
             // Non-artifact agent — still call LLM for token accounting but don't persist
             log.debug("Agent role '{}' does not produce a persisted artifact. Executing for telemetry only.", role);
-            return aiProviderFactory.generateCompletionWithFallback(request);
+            return aiService.generateCompletion(request, session.getUser(), null, task.getTaskKey(), "ORCHESTRATION", role);
         }
 
         AiCompletionResponse lastResponse = null;
@@ -227,7 +221,7 @@ public class AgentOrchestrationEngine {
             try {
                 log.info("Agent [{}] artifact generation attempt {}/{} [CID: {}]", role, attempt, MAX_SANITIZE_RETRIES, correlationId);
 
-                AiCompletionResponse response = aiProviderFactory.generateCompletionWithFallback(request);
+                AiCompletionResponse response = aiService.generateCompletion(request, session.getUser(), null, task.getTaskKey(), "ORCHESTRATION", role);
                 lastResponse = response;
 
                 String rawContent = response != null ? response.getContent() : "";

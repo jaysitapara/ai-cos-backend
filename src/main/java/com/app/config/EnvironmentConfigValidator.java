@@ -26,13 +26,20 @@ public class EnvironmentConfigValidator {
         // Perform strict validation via Centralized AppConfigService
         appConfigService.validateRequiredVariables(isTestProfile);
 
-        log.info("Environment configuration validated cleanly. Gemini Key: {}, Database: {}, Redis: {}, GitHub: {}, Vercel: {}, Resend: {}",
-            appConfigService.maskSecret(appConfigService.getGeminiApiKey()),
-            appConfigService.maskSecret(appConfigService.getDatabaseUrl()),
-            appConfigService.maskSecret(appConfigService.getRedisUrl()),
-            appConfigService.maskSecret(appConfigService.getGithubToken()),
-            appConfigService.maskSecret(appConfigService.getVercelToken()),
-            appConfigService.maskSecret(appConfigService.getResendApiKey())
+        log.info("Environment configuration validated cleanly. AI_MODE: {}, Gemini Key: {}, OpenAI Key: {}, Database: {}, Redis: {}, GitHub: {}, Vercel: {}, Resend: {}",
+            appConfigService.getNormalizedAiMode(),
+            setOrNotSet(appConfigService.getGeminiApiKey()),
+            setOrNotSet(appConfigService.getOpenAiApiKey()),
+            setOrNotSet(appConfigService.getDatabaseUrl()),
+            setOrNotSet(appConfigService.getRedisUrl()),
+            setOrNotSet(appConfigService.getGithubToken()),
+            setOrNotSet(appConfigService.getVercelToken()),
+            setOrNotSet(appConfigService.getResendApiKey())
         );
+    }
+
+    /** Returns [SET] or [NOT SET] without exposing any secret fragment. */
+    private static String setOrNotSet(String value) {
+        return (value != null && !value.trim().isEmpty()) ? "[SET]" : "[NOT SET]";
     }
 }
