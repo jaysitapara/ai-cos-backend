@@ -24,6 +24,7 @@ public class WorkspaceSessionResponse {
     private List<String> assumptions;
     private List<String> missingInfo;
     private ImplementationPlanResponse plan;
+    private com.app.entity.ExecutionMode executionMode;
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 }

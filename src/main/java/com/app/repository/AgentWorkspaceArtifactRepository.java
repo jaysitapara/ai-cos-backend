@@ -11,4 +11,5 @@ import java.util.Optional;
 public interface AgentWorkspaceArtifactRepository extends JpaRepository<AgentWorkspaceArtifactEntity, Long> {
     List<AgentWorkspaceArtifactEntity> findBySessionIdOrderByFilePathAsc(Long sessionId);
     Optional<AgentWorkspaceArtifactEntity> findBySessionIdAndFilePath(Long sessionId, String filePath);
+    void deleteBySessionId(Long sessionId);
 }

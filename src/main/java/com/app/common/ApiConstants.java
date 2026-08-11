@@ -27,7 +27,7 @@ public final class ApiConstants {
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String BEARER_PREFIX = "Bearer ";
 
-    public static final String AGENT_WORKSPACE_PATH = "/api/v1/agent-workspace";
+    public static final String AGENT_WORKSPACE_PATH = API_V1 + "/agent-workspace";
 
     /**
      * Endpoints reachable without a JWT bearer token.

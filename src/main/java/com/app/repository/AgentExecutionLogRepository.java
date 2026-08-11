@@ -9,4 +9,5 @@ import java.util.List;
 @Repository
 public interface AgentExecutionLogRepository extends JpaRepository<AgentExecutionLogEntity, Long> {
     List<AgentExecutionLogEntity> findBySessionIdOrderByTimestampAsc(Long sessionId);
+    void deleteBySessionId(Long sessionId);
 }

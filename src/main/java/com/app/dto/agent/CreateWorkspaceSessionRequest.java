@@ -18,4 +18,6 @@ public class CreateWorkspaceSessionRequest {
     private String goalPrompt;
 
     private List<UploadedFileDTO> uploadedFiles;
+
+    private com.app.entity.ExecutionMode executionMode;
 }

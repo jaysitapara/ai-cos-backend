@@ -10,4 +10,5 @@ import java.util.List;
 public interface AgentExecutionTaskRepository extends JpaRepository<AgentExecutionTaskEntity, Long> {
     List<AgentExecutionTaskEntity> findBySessionIdOrderByExecutionOrderAsc(Long sessionId);
     List<AgentExecutionTaskEntity> findBySessionIdAndStatus(Long sessionId, String status);
+    void deleteBySessionId(Long sessionId);
 }

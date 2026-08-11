@@ -24,6 +24,13 @@ public class AgentTaskDTO {
     private Integer retries;
     private String reasoningSummary;
     private String outputSummary;
+    private String currentFile;
+    private String provider;
+    private String model;
+    private Long promptTokens;
+    private Long completionTokens;
+    private Long totalTokens;
+    private Long durationMs;
     private OffsetDateTime startedAt;
     private OffsetDateTime completedAt;
 }

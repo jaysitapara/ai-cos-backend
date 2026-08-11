@@ -1,12 +1,12 @@
-# Test profile: an in-memory H2 database keeps the build runnable on any
-# machine (and in CI) without PostgreSQL or Docker. Integration tests that must
-# exercise real PostgreSQL behaviour should use Testcontainers instead.
 spring:
   datasource:
     url: jdbc:h2:mem:app_test;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
     username: sa
     password: ''
     driver-class-name: org.h2.Driver
+  data:
+    redis:
+      url: redis://localhost:6379
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -16,9 +16,33 @@ spring:
   flyway:
     enabled: false
 
+gemini:
+  api-key: test-gemini-key
+
+groq:
+  api-key: test-groq-key
+
+tavily:
+  api-key: test-tavily-key
+
+upstash:
+  redis:
+    rest-url: https://test-upstash.io
+    rest-token: test-upstash-token
+
 jwt:
   secret: test-secret-key-used-only-for-automated-tests-0123456789
+  refresh-secret: test-refresh-secret-key-used-only-for-automated-tests
   expiration: 3600000
+
+github:
+  token: test-github-token
+
+vercel:
+  token: test-vercel-token
+
+resend:
+  api-key: test-resend-api-key
 
 app:
   cors:
@@ -31,16 +55,12 @@ app:
     verification-token-hours: 24
     password-reset-token-hours: 2
     login-history-retention-days: 90
-    # Generous so the shared-IP MockMvc suite is never throttled by a sibling test.
     rate-limit-max-attempts: 1000
     rate-limit-window-seconds: 60
-    # Far future: the retention sweep must not fire during a test run.
     cleanup-cron: "0 0 0 1 1 ?"
 
   oauth:
     google:
-      # Left unset: no test calls Google, and an unconfigured client id is the
-      # documented "Google sign-in unavailable" state.
       client-id: ''
       jwk-set-uri: https://www.googleapis.com/oauth2/v3/certs
       issuers: https://accounts.google.com,accounts.google.com

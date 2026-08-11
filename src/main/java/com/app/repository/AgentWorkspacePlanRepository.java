@@ -11,4 +11,5 @@ import java.util.UUID;
 public interface AgentWorkspacePlanRepository extends JpaRepository<AgentWorkspacePlanEntity, Long> {
     Optional<AgentWorkspacePlanEntity> findByPublicId(UUID publicId);
     Optional<AgentWorkspacePlanEntity> findBySessionId(Long sessionId);
+    void deleteBySessionId(Long sessionId);
 }

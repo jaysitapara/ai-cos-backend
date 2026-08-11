@@ -2,6 +2,7 @@ package com.app.controller;
 
 import com.app.dto.agent.ArtifactResponse;
 import com.app.service.AgentWorkspaceService;
+import com.app.service.AiOutputSanitizerService;
 import com.app.dto.agent.CreateWorkspaceSessionRequest;
 import com.app.dto.agent.ExecutionProgressResponse;
 import com.app.dto.agent.ImplementationPlanResponse;
@@ -11,6 +12,7 @@ import com.app.entity.UserEntity;
 import com.app.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -30,13 +32,15 @@ import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+@Slf4j
 @RestController
-@RequestMapping("/api/v1/agent-workspace")
+@RequestMapping(com.app.common.ApiConstants.API_V1 + "/agent-workspace")
 @RequiredArgsConstructor
 public class AgentWorkspaceController {
 
     private final AgentWorkspaceService workspaceService;
     private final UserRepository userRepository;
+    private final AiOutputSanitizerService sanitizerService;
 
     @PostMapping("/sessions")
     public ResponseEntity<WorkspaceSessionResponse> createSession(
@@ -82,20 +86,75 @@ public class AgentWorkspaceController {
         return ResponseEntity.ok(workspaceService.listUserSessions(user));
     }
 
-    @GetMapping("/sessions/{publicId}/export")
+    @org.springframework.web.bind.annotation.DeleteMapping("/sessions/{publicId}")
+    public ResponseEntity<Void> deleteSession(@PathVariable UUID publicId) {
+        workspaceService.deleteSession(publicId);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
+     * Phase 7.2 — ZIP Export with Final Sanitization Guard
+     *
+     * Before each artifact is written to the ZIP archive:
+     *  1. Content is re-sanitized (strips any residual provider metadata)
+     *  2. Content is checked for minimum viable length (>= 10 chars)
+     *  3. Empty or suspiciously tiny content is skipped with a warning
+     *
+     * This is the LAST line of defense — even if something slipped through the
+     * DB persistence layer, the ZIP will never contain raw AI metadata.
+     */
+    @GetMapping({"/sessions/{publicId}/export", "/sessions/{publicId}/export-zip"})
     public ResponseEntity<byte[]> exportDeliverablesZip(@PathVariable UUID publicId) throws IOException {
         List<ArtifactResponse> artifacts = workspaceService.getArtifacts(publicId);
 
+        int included = 0;
+        int skipped = 0;
+
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         try (ZipOutputStream zos = new ZipOutputStream(baos)) {
+            zos.setComment("AI-COS Generated Project — Phase 7.2 Sanitized");
+
             for (ArtifactResponse artifact : artifacts) {
+                String rawContent = artifact.getContent();
+                if (rawContent == null) {
+                    log.warn("ZIP SKIP [null content]: {}", artifact.getFilePath());
+                    skipped++;
+                    continue;
+                }
+
+                // Final sanitization pass — idempotent on already-clean content
+                String sanitizedContent = sanitizerService.sanitizeOutput(rawContent);
+
+                if (sanitizedContent.isBlank()) {
+                    log.warn("ZIP SKIP [blank after sanitize]: {}", artifact.getFilePath());
+                    skipped++;
+                    continue;
+                }
+
+                // Guard: content suspiciously short (< 10 chars) for non-trivial types
+                if (sanitizedContent.length() < 10) {
+                    log.warn("ZIP SKIP [suspiciously short ({} chars)]: {}", sanitizedContent.length(), artifact.getFilePath());
+                    skipped++;
+                    continue;
+                }
+
+                // Guard: content contains known raw metadata signatures
+                if (containsRawMetadataSignature(sanitizedContent)) {
+                    log.error("ZIP BLOCK [raw metadata detected in sanitized content]: {} — SKIPPING to protect ZIP integrity",
+                              artifact.getFilePath());
+                    skipped++;
+                    continue;
+                }
+
                 ZipEntry entry = new ZipEntry(artifact.getFilePath());
                 zos.putNextEntry(entry);
-                zos.write(artifact.getContent().getBytes(StandardCharsets.UTF_8));
+                zos.write(sanitizedContent.getBytes(StandardCharsets.UTF_8));
                 zos.closeEntry();
+                included++;
             }
         }
 
+        log.info("ZIP export for session {}: {} files included, {} files skipped", publicId, included, skipped);
         byte[] zipBytes = baos.toByteArray();
 
         return ResponseEntity.ok()
@@ -104,12 +163,37 @@ public class AgentWorkspaceController {
                 .body(zipBytes);
     }
 
+    /**
+     * Detects known raw AI metadata signatures that should NEVER appear in exported files.
+     * Returns true if the content appears to still contain unstripped provider metadata.
+     */
+    private boolean containsRawMetadataSignature(String content) {
+        if (content == null) return false;
+        return content.contains("=== WORKSPACE SESSION CONTEXT ===")
+            || content.contains("=== SYSTEM PROMPT ===")
+            || content.contains("=== AGENT INSTRUCTION ===")
+            || content.contains("Processed prompt:")
+            || content.contains("[LocalAI")
+            || content.contains("[Gemini")
+            || content.contains("[Groq")
+            || content.contains("[OpenAI")
+            || content.contains("[Anthropic")
+            || content.contains("Goal Prompt:");
+    }
+
     private UserEntity getAuthenticatedUser(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
             return userRepository.findAll().stream().findFirst().orElse(null);
         }
-        String email = authentication.getName();
-        return userRepository.findByEmailAndDeletedAtIsNull(email)
-                .orElseGet(() -> userRepository.findAll().stream().findFirst().orElse(null));
+        String name = authentication.getName();
+        try {
+            UUID publicId = UUID.fromString(name);
+            return userRepository.findByPublicIdAndDeletedAtIsNull(publicId)
+                    .orElseGet(() -> userRepository.findByEmailAndDeletedAtIsNull(name)
+                            .orElseGet(() -> userRepository.findAll().stream().findFirst().orElse(null)));
+        } catch (IllegalArgumentException e) {
+            return userRepository.findByEmailAndDeletedAtIsNull(name)
+                    .orElseGet(() -> userRepository.findAll().stream().findFirst().orElse(null));
+        }
     }
 }

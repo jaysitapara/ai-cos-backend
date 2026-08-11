@@ -61,4 +61,9 @@ public class AgentWorkspaceSessionEntity extends BaseEntity {
 
     @Column(name = "missing_info_json", columnDefinition = "TEXT")
     private String missingInfoJson;
+
+    @jakarta.persistence.Enumerated(jakarta.persistence.EnumType.STRING)
+    @Column(name = "execution_mode", nullable = false, length = 50)
+    @Builder.Default
+    private ExecutionMode executionMode = ExecutionMode.AUTO;
 }

@@ -1,0 +1,16 @@
+package com.app.enums;
+
+public enum RequirementCategory {
+    BUSINESS_GOALS,
+    FUNCTIONAL,
+    NON_FUNCTIONAL,
+    USER_ROLES,
+    PERMISSIONS,
+    BUSINESS_RULES,
+    INTEGRATIONS,
+    DATA_ENTITIES,
+    REPORTS,
+    NOTIFICATIONS,
+    COMPLIANCE,
+    TECHNICAL_CONSTRAINTS
+}
