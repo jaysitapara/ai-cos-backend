@@ -50,16 +50,14 @@ public class V1SessionController {
 
     private UUID getUserPublicId(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            UserEntity user = userRepository.findAll().stream().findFirst()
-                    .orElseThrow(() -> new UnauthorizedException("User authentication required"));
-            return user.getPublicId();
+            throw new UnauthorizedException("User authentication required");
         }
         String name = authentication.getName();
         try {
             return UUID.fromString(name);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
             UserEntity user = userRepository.findByEmailAndDeletedAtIsNull(name)
-                    .orElseGet(() -> userRepository.findAll().stream().findFirst().orElseThrow());
+                    .orElseThrow(() -> new UnauthorizedException("Authenticated user not found"));
             return user.getPublicId();
         }
     }

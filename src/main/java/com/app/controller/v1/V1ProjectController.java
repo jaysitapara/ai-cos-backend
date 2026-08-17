@@ -201,18 +201,17 @@ public class V1ProjectController {
 
     private UserEntity getAuthenticatedUser(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return userRepository.findAll().stream().findFirst()
-                    .orElseThrow(() -> new UnauthorizedException("User authentication required"));
+            throw new UnauthorizedException("User authentication required");
         }
         String name = authentication.getName();
         try {
             UUID publicId = UUID.fromString(name);
             return userRepository.findByPublicIdAndDeletedAtIsNull(publicId)
                     .orElseGet(() -> userRepository.findByEmailAndDeletedAtIsNull(name)
-                            .orElseGet(() -> userRepository.findAll().stream().findFirst().orElseThrow()));
-        } catch (Exception e) {
+                            .orElseThrow(() -> new UnauthorizedException("Authenticated user not found")));
+        } catch (IllegalArgumentException e) {
             return userRepository.findByEmailAndDeletedAtIsNull(name)
-                    .orElseGet(() -> userRepository.findAll().stream().findFirst().orElseThrow());
+                    .orElseThrow(() -> new UnauthorizedException("Authenticated user not found"));
         }
     }
 }

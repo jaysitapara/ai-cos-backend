@@ -25,8 +25,8 @@ public class GlobalExceptionHandler {
 
     private static final String GENERIC_ERROR_MESSAGE = "An unexpected error occurred";
 
-    @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
+    @ExceptionHandler({ResourceNotFoundException.class, java.util.NoSuchElementException.class})
+    public ResponseEntity<ErrorResponse> handleResourceNotFound(Exception ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .body(ErrorResponse.of(ErrorCode.RESOURCE_NOT_FOUND, ex.getMessage()));
     }

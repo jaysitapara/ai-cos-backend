@@ -72,8 +72,12 @@ public class ContentAgentService {
 
     @Transactional(readOnly = true)
     public ContentThreadEntity getThreadByPublicId(UserEntity user, UUID publicId) {
-        return threadRepository.findByPublicIdAndUserId(publicId, user.getId())
+        ContentThreadEntity thread = threadRepository.findByPublicIdAndUserId(publicId, user.getId())
             .orElseThrow(() -> new NoSuchElementException("Thread not found or access denied for ID: " + publicId));
+        if (thread.getBrand() != null) {
+            org.hibernate.Hibernate.initialize(thread.getBrand());
+        }
+        return thread;
     }
 
     @Transactional(readOnly = true)

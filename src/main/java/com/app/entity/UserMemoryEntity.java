@@ -28,7 +28,7 @@ public class UserMemoryEntity {
     @Column(name = "memory_type", nullable = false, length = 50)
     private String memoryType;
 
-    @Column(name = "value", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "\"value\"", nullable = false, columnDefinition = "TEXT")
     private String value;
 
     @Column(name = "source", nullable = false, length = 50)

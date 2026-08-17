@@ -49,6 +49,7 @@ public class AgentWorkspaceService {
     private final AgentWorkspaceArtifactRepository artifactRepository;
     private final DocumentParserService documentParserService;
     private final AgentOrchestrationEngine orchestrationEngine;
+    private final TokenCostCalculator tokenCostCalculator;
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -180,8 +181,10 @@ public class AgentWorkspaceService {
         int failed = (int) tasks.stream().filter(t -> "FAILED".equals(t.getStatus())).count();
         int waiting = total - completed - running - failed;
 
-        int percentage = total > 0 ? (completed * 100) / total : 0;
-        if ("COMPLETED".equals(session.getStatus())) percentage = 100;
+        int percentage = (total > 0 && completed > 0) ? (completed * 100) / total : 0;
+        if ("COMPLETED".equals(session.getStatus()) && total > 0 && completed == total) {
+            percentage = 100;
+        }
 
         AgentExecutionTaskEntity currentTask = tasks.stream()
                 .filter(t -> "IN_PROGRESS".equals(t.getStatus()))
@@ -206,7 +209,7 @@ public class AgentWorkspaceService {
         long promptTokensTotal = taskDTOs.stream().mapToLong(t -> t.getPromptTokens() != null ? t.getPromptTokens() : 0).sum();
         long completionTokensTotal = taskDTOs.stream().mapToLong(t -> t.getCompletionTokens() != null ? t.getCompletionTokens() : 0).sum();
         long totalTokens = promptTokensTotal + completionTokensTotal;
-        double estimatedCost = (promptTokensTotal * 0.00000015) + (completionTokensTotal * 0.0000006);
+        double estimatedCost = tokenCostCalculator.calculateCost("gemini-1.5-flash", promptTokensTotal, completionTokensTotal);
 
         return ExecutionProgressResponse.builder()
                 .sessionStatus(session.getStatus())

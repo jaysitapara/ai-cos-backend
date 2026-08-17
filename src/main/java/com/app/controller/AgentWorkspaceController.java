@@ -9,6 +9,7 @@ import com.app.dto.agent.ImplementationPlanResponse;
 import com.app.dto.agent.PlanApprovalRequest;
 import com.app.dto.agent.WorkspaceSessionResponse;
 import com.app.entity.UserEntity;
+import com.app.exception.UnauthorizedException;
 import com.app.repository.UserRepository;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -180,17 +181,17 @@ public class AgentWorkspaceController {
 
     private UserEntity getAuthenticatedUser(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return userRepository.findAll().stream().findFirst().orElse(null);
+            throw new UnauthorizedException("User authentication required");
         }
         String name = authentication.getName();
         try {
             UUID publicId = UUID.fromString(name);
             return userRepository.findByPublicIdAndDeletedAtIsNull(publicId)
                     .orElseGet(() -> userRepository.findByEmailAndDeletedAtIsNull(name)
-                            .orElseGet(() -> userRepository.findAll().stream().findFirst().orElse(null)));
+                            .orElseThrow(() -> new UnauthorizedException("Authenticated user not found")));
         } catch (IllegalArgumentException e) {
             return userRepository.findByEmailAndDeletedAtIsNull(name)
-                    .orElseGet(() -> userRepository.findAll().stream().findFirst().orElse(null));
+                    .orElseThrow(() -> new UnauthorizedException("Authenticated user not found"));
         }
     }
 }

@@ -128,7 +128,7 @@ public class AgentOrchestrationEngine {
 
                 addLog(session, task, task.getAgentRole(), "INFO",
                         "Task " + task.getTaskKey() + " started: " + task.getTitle() + " [CID: " + correlationId + " | RID: " + requestId + "]",
-                        "Prompt context built & secrets sanitized. Querying AI Provider Factory with failover enabled.");
+                        "Prompt context built & secrets sanitized. Querying active AI provider.");
 
                 // ──────────────────────────────────────────────────────────
                 // CORE: Generate artifact with live AI + sanitization + retry

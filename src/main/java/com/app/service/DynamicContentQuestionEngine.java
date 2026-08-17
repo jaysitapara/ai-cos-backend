@@ -32,6 +32,7 @@ public class DynamicContentQuestionEngine {
         private List<String> defaultOptions;
     }
 
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<QuestionDefinition> getQuestionsForContentType(String contentType, BrandEntity brand) {
         String normalized = contentType != null ? contentType.toUpperCase() : "LINKEDIN_POST";
 
